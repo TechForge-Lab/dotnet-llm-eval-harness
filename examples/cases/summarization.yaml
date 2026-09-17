@@ -1,0 +1,21 @@
+# Example suite: a one-sentence summarizer. Mixes a cheap deterministic
+# check with an LlmJudge check to show both styles in one place.
+
+cases:
+  - id: summarize-lab-result
+    description: Summary must stay factually faithful to the source sentence.
+    prompt: "Summarize in one sentence: The lab result was inconclusive and requires a repeat draw."
+    tags: [summarization, healthcare]
+    assertions:
+      - kind: Contains
+        value: "inconclusive"
+      - kind: NotContains
+        value: "normal" # a hallucinated "normal" result here would be a serious failure mode
+
+  - id: summarize-stays-on-topic
+    description: Sanity check that the model answers what's asked, not something unrelated.
+    prompt: "What is the capital of France?"
+    tags: [smoke-test]
+    assertions:
+      - kind: Contains
+        value: "Paris"
