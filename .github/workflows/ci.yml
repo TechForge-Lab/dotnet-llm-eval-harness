@@ -1,0 +1,37 @@
+name: CI
+
+# Runs on every push and pull request. This is the whole point of the
+# project: prompt or code changes get graded automatically, the same way
+# unit tests gate a normal PR.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      - name: Run example eval suite
+        # Uses the FakeModelClient wired up in Program.cs, so this needs no
+        # API keys and costs nothing to run on every commit. Point this at a
+        # real provider by swapping the client in Program.cs (see README).
+        run: dotnet run --project src/EvalHarness.Cli --configuration Release -- examples/cases
