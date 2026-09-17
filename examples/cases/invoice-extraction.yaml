@@ -1,0 +1,27 @@
+# Example suite: an LLM that extracts structured fields from invoice text.
+# Each case sends a prompt to the model under test and checks the response
+# against one or more assertions. The first assertion to fail stops that case
+# and its reason is what gets printed in the report.
+
+cases:
+  - id: invoice-extraction-happy-path
+    description: A clean invoice with all fields present should extract cleanly.
+    prompt: "Extract the invoice total from: 'Invoice #4471, Total Due: $1,204.50'"
+    tags: [invoice, extraction, regression]
+    assertions:
+      - kind: JsonSchemaValid
+        schemaPath: examples/schemas/invoice.schema.json
+      - kind: Contains
+        value: "1204.5"
+
+  - id: invoice-extraction-missing-total
+    description: >
+      An invoice with no total present should still return valid JSON with
+      the missing field explicitly null — this is the case that currently
+      demonstrates a FAILING run, on purpose, to show the harness catching
+      a real extraction gap (schema requires "total", response omits it).
+    prompt: "Extract the invoice total from: 'Thanks for your business!'"
+    tags: [invoice, extraction, edge-case]
+    assertions:
+      - kind: JsonSchemaValid
+        schemaPath: examples/schemas/invoice.schema.json
